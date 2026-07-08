@@ -4,6 +4,233 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FitMatch - AI-Powered Fashion Styling</title>
+
+    <!-- ========================================
+         CONFIGURATION SECTION
+         ======================================== -->
+    <script>
+        // FitMatch Configuration
+        const CONFIG = {
+            // Google Gemini API Configuration
+            GEMINI_API_KEY: "AIzaSyDampleKeyHereReplace123456789", // Replace with your actual Gemini API key
+            GEMINI_MODEL: "gemini-1.5-flash", // Free tier model
+            GEMINI_API_URL: "https://generativelanguage.googleapis.com/v1beta/models",
+
+            // App Settings
+            APP_NAME: "FitMatch",
+            DEBUG_MODE: true, // Set to false in production
+
+            // Feature Flags
+            FEATURES: {
+                USE_AI_ANALYSIS: true,
+                DEMO_MODE: true,
+                CACHE_RESPONSES: true
+            }
+        };
+
+        // AI Service Class
+        class GeminiAIService {
+            constructor(apiKey, model) {
+                this.apiKey = apiKey;
+                this.model = model;
+                this.baseUrl = CONFIG.GEMINI_API_URL;
+            }
+
+            async analyzeOutfitImage(imageBase64, wardrobeItems) {
+                if (!this.apiKey || this.apiKey.includes("sample")) {
+                    console.warn("Using mock data - Gemini API key not configured");
+                    return this.getMockAnalysis();
+                }
+
+                try {
+                    const prompt = `Analyze this outfit image and compare it with the following wardrobe items: ${wardrobeItems.map(item => item.category).join(', ')}.
+
+Please provide:
+1. List of clothing items visible in the outfit
+2. For each item, estimate the probability (0-100%) that it's available in the wardrobe based on category matching
+3. Overall match percentage (0-100%)
+4. Missing items not found in wardrobe
+5. 3 styling recommendations
+
+Format response as JSON with keys: outfitItems, matchPercentage, ownedItems, missingItems, recommendations`;
+
+                    const response = await fetch(`${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: prompt
+                                }, {
+                                    inlineData: {
+                                        mimeType: "image/jpeg",
+                                        data: imageBase64.split(',')[1]
+                                    }
+                                }]
+                            }],
+                            generationConfig: {
+                                temperature: 0.7,
+                                topK: 40,
+                                topP: 0.95,
+                                maxOutputTokens: 500,
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    return this.parseGeminiResponse(data);
+                } catch (error) {
+                    console.error('Gemini API Error:', error);
+                    if (CONFIG.DEBUG_MODE) {
+                        console.log('Falling back to mock data');
+                    }
+                    return this.getMockAnalysis();
+                }
+            }
+
+            async generateOutfitSuggestions(wardrobeItems) {
+                if (!this.apiKey || this.apiKey.includes("sample")) {
+                    return this.getMockSuggestions();
+                }
+
+                try {
+                    const itemList = wardrobeItems.map(item => 
+                        `- ${item.category} (${item.color || 'unknown color'}${item.style ? ', ' + item.style : ''})`
+                    ).join('\n');
+
+                    const prompt = `Based on these wardrobe items:
+${itemList}
+
+Suggest 5 unique outfit combinations. For each:
+1. List the items to wear
+2. Occasion (casual, formal, sporty, etc.)
+3. Styling tips
+4. Why this combination works
+
+Format as JSON array with fields: name, items, occasion, tips, reasoning`;
+
+                    const response = await fetch(`${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: prompt
+                                }]
+                            }],
+                            generationConfig: {
+                                temperature: 0.8,
+                                topK: 40,
+                                topP: 0.95,
+                                maxOutputTokens: 1000,
+                            }
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    return this.parseGeminiSuggestions(data);
+                } catch (error) {
+                    console.error('Gemini API Error:', error);
+                    return this.getMockSuggestions();
+                }
+            }
+
+            parseGeminiResponse(data) {
+                try {
+                    const content = data.candidates[0].content.parts[0].text;
+                    const jsonMatch = content.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        return JSON.parse(jsonMatch[0]);
+                    }
+                } catch (error) {
+                    console.error('Error parsing Gemini response:', error);
+                }
+                return this.getMockAnalysis();
+            }
+
+            parseGeminiSuggestions(data) {
+                try {
+                    const content = data.candidates[0].content.parts[0].text;
+                    const jsonMatch = content.match(/\[[\s\S]*\]/);
+                    if (jsonMatch) {
+                        return JSON.parse(jsonMatch[0]);
+                    }
+                } catch (error) {
+                    console.error('Error parsing Gemini suggestions:', error);
+                }
+                return this.getMockSuggestions();
+            }
+
+            getMockAnalysis() {
+                return {
+                    outfitItems: [
+                        { item: 'White Blazer', confidence: 0.95 },
+                        { item: 'Black Slim Pants', confidence: 0.88 },
+                        { item: 'Black Loafers', confidence: 0.85 },
+                        { item: 'Silver Watch', confidence: 0.72 },
+                    ],
+                    ownedItems: ['White Blazer', 'Black Slim Pants'],
+                    missingItems: ['Black Loafers', 'Silver Watch'],
+                    matchPercentage: 65,
+                    recommendations: [
+                        'The neutral color palette works great with your existing whites and blacks',
+                        'Consider adding classic leather loafers to complete formal looks',
+                        'Layer with the blazer for versatile day-to-evening outfits'
+                    ]
+                };
+            }
+
+            getMockSuggestions() {
+                return [
+                    {
+                        name: 'Casual Weekend Look',
+                        items: ['Black T-shirt', 'Blue Jeans', 'White Sneakers'],
+                        occasion: 'Casual',
+                        tips: 'Roll up the jeans slightly for a modern touch',
+                        reasoning: 'Perfect for a relaxed day out'
+                    },
+                    {
+                        name: 'Business Casual',
+                        items: ['White Blazer', 'Black Pants', 'White Blouse'],
+                        occasion: 'Work',
+                        tips: 'Add a simple necklace for polish',
+                        reasoning: 'Professional yet approachable look'
+                    }
+                ];
+            }
+        }
+
+        // Initialize AI Service
+        let aiService = null;
+        function initializeAIService() {
+            aiService = new GeminiAIService(CONFIG.GEMINI_API_KEY, CONFIG.GEMINI_MODEL);
+        }
+
+        // Log configuration on page load
+        window.addEventListener('load', function() {
+            if (CONFIG.DEBUG_MODE) {
+                console.log('=== FitMatch Configuration ===');
+                console.log('API Key configured:', !CONFIG.GEMINI_API_KEY.includes('sample'));
+                console.log('Model:', CONFIG.GEMINI_MODEL);
+                console.log('Features:', CONFIG.FEATURES);
+            }
+            initializeAIService();
+        });
+    </script>
+    <!-- ======================================== -->
+
     <style>
         * {
             margin: 0;
@@ -342,6 +569,19 @@
             display: block;
         }
 
+        .success-message {
+            background-color: #dcfce7;
+            color: #166534;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
         .auth-form {
             display: flex;
             flex-direction: column;
@@ -377,6 +617,34 @@
         .demo-box p {
             color: var(--neutral);
             margin-bottom: 0.5rem;
+        }
+
+        .api-config-box {
+            background-color: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 2rem;
+            font-size: 0.875rem;
+        }
+
+        .api-config-box h4 {
+            color: #92400e;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .api-config-box p {
+            color: #b45309;
+            margin-bottom: 0.5rem;
+        }
+
+        .api-config-box code {
+            background-color: #fef08a;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.8rem;
         }
 
         /* Dashboard */
@@ -726,7 +994,6 @@
             margin-bottom: 0.75rem;
             transition: all 0.3s;
             position: relative;
-            group: inspiration-item;
         }
 
         .inspiration-item.active {
@@ -962,6 +1229,11 @@
             color: #991b1b;
         }
 
+        .tag.suggestion {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
         .recommendations {
             background-color: var(--light);
             border-radius: 0.5rem;
@@ -981,6 +1253,99 @@
 
         .recommendations span {
             color: #9ca3af;
+        }
+
+        /* Suggestions Section */
+        .suggestions-section {
+            background-color: var(--light);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .suggestions-section h3 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .suggestion-card {
+            background-color: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .suggestion-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .suggestion-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .suggestion-badge {
+            display: inline-block;
+            background-color: var(--info);
+            color: var(--secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .suggestion-card p {
+            font-size: 0.9rem;
+            color: var(--neutral);
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .suggestion-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .suggestion-item-tag {
+            background-color: var(--light);
+            color: var(--primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--neutral);
+        }
+
+        .spinner {
+            border: 3px solid var(--light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* Modal */
@@ -1061,6 +1426,47 @@
             transform: scale(1.1);
         }
 
+        /* API Status Badge */
+        .api-status-badge {
+            position: fixed;
+            bottom: 6rem;
+            right: 1.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .api-status-badge.active {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .api-status-badge.inactive {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.active {
+            background-color: #10b981;
+        }
+
+        .status-dot.inactive {
+            background-color: #f59e0b;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .hero {
@@ -1114,6 +1520,10 @@
             nav {
                 gap: 1rem;
             }
+
+            .suggestions-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -1142,6 +1552,12 @@
             </div>
         </div>
     </header>
+
+    <!-- API Status Badge -->
+    <div id="apiStatusBadge" class="api-status-badge inactive">
+        <div class="status-dot inactive"></div>
+        <span>Mock Mode</span>
+    </div>
 
     <main class="container">
         <!-- Home Page -->
@@ -1176,8 +1592,8 @@
                         </div>
                         <div class="feature-card">
                             <div class="feature-icon">✨</div>
-                            <h3>AI Styling</h3>
-                            <p>Get personalized outfit suggestions based on your existing clothes.</p>
+                            <h3>AI Styling (Gemini)</h3>
+                            <p>Get personalized outfit suggestions powered by Google Gemini AI.</p>
                         </div>
                         <div class="feature-card">
                             <div class="feature-icon">📊</div>
@@ -1238,6 +1654,13 @@
                         <p>Email: demo@example.com</p>
                         <p>Password: demo123</p>
                     </div>
+
+                    <div class="api-config-box">
+                        <h4>🔑 Google Gemini API</h4>
+                        <p>To enable AI-powered analysis, configure your API key in the code:</p>
+                        <code>CONFIG.GEMINI_API_KEY = "your-key-here"</code>
+                        <p style="margin-top: 0.5rem; font-size: 0.8rem;">Free tier available at: <br><strong>console.cloud.google.com</strong></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1250,6 +1673,7 @@
                     <p>Join FitMatch to style with AI</p>
 
                     <div id="signupError" class="error-message"></div>
+                    <div id="signupSuccess" class="success-message"></div>
 
                     <form class="auth-form" onsubmit="handleSignup(event)">
                         <div class="form-group">
@@ -1286,7 +1710,7 @@
         <div id="dashboardPage" class="page">
             <div class="page-header">
                 <h1 id="welcomeName">Welcome!</h1>
-                <p>Here's your FitMatch overview</p>
+                <p>Here's your FitMatch overview powered by AI</p>
             </div>
 
             <div class="stats-grid">
@@ -1311,11 +1735,11 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-icon">🎯</div>
+                    <div class="stat-icon">🤖</div>
                     <div class="stat-content">
                         <div class="stat-content" style="display: flex; flex-direction: column;">
                             <h3 id="matchCount">0</h3>
-                            <p>Outfits Analyzed</p>
+                            <p>AI Analyses</p>
                         </div>
                     </div>
                 </div>
@@ -1330,19 +1754,19 @@
 
                 <div class="action-card secondary" onclick="goToPage('inspirations')">
                     <h3>Find Inspiration</h3>
-                    <p>Upload outfit photos and let AI match them with your wardrobe</p>
+                    <p>Upload outfit photos and let Gemini AI analyze them with your wardrobe</p>
                     <button class="btn" style="background-color: var(--primary); color: var(--secondary);">Add Inspiration →</button>
                 </div>
             </div>
 
             <div class="tips-box">
-                <h3>💡 Styling Tips</h3>
+                <h3>💡 AI Styling Tips</h3>
                 <ul>
-                    <li>• Start by uploading clear, well-lit photos of your favorite clothing items</li>
-                    <li>• Organize items by category (tops, bottoms, dresses, etc.) for better results</li>
-                    <li>• Upload multiple angles and detail shots of key pieces</li>
-                    <li>• Add tags to help AI understand style, color, and occasion</li>
-                    <li>• Check inspirations regularly for new styling ideas</li>
+                    <li>• Upload clear, well-lit photos for better AI analysis</li>
+                    <li>• Organize items by category (tops, bottoms, dresses, etc.)</li>
+                    <li>• Add colors and styles for enhanced recommendations</li>
+                    <li>• The more items you have, the better suggestions you'll get</li>
+                    <li>• Check inspirations regularly for new AI-generated ideas</li>
                 </ul>
             </div>
         </div>
@@ -1443,7 +1867,7 @@
                         </div>
 
                         <div class="tips-box" style="margin-top: 1.5rem; margin-bottom: 0;">
-                            <p style="font-weight: 500; margin-bottom: 0.75rem;">💡 Tips for best results:</p>
+                            <p style="font-weight: 500; margin-bottom: 0.75rem;">💡 Tips for best AI results:</p>
                             <ul style="padding-left: 1rem;">
                                 <li style="margin-bottom: 0.25rem;">• Use clear, well-lit photos</li>
                                 <li style="margin-bottom: 0.25rem;">• Show the full outfit</li>
@@ -1498,12 +1922,12 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeHelpModal()">✕</button>
             <div class="modal-header">
-                <h2>Getting Started</h2>
+                <h2>Getting Started with FitMatch</h2>
             </div>
             <div class="modal-body">
                 <div>
                     <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">1. Build Your Wardrobe</h3>
-                    <p style="font-size: 0.9rem; color: var(--neutral);">Start by uploading clear photos of your clothing items. Organize them by category (tops, bottoms, dresses, etc.) and add colors/styles for better matching.</p>
+                    <p style="font-size: 0.9rem; color: var(--neutral);">Start by uploading clear photos of your clothing items. Organize them by category (tops, bottoms, dresses, etc.) and add colors/styles for better AI matching.</p>
                 </div>
 
                 <div style="margin-top: 1rem;">
@@ -1512,13 +1936,25 @@
                 </div>
 
                 <div style="margin-top: 1rem;">
-                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">3. Analyze with AI</h3>
-                    <p style="font-size: 0.9rem; color: var(--neutral);">Click "Analyze with Your Wardrobe" to see how well each inspiration matches your existing clothes. Get a percentage match and see which items you already have.</p>
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">3. Analyze with Gemini AI</h3>
+                    <p style="font-size: 0.9rem; color: var(--neutral);">Click "Analyze with Your Wardrobe" to see how well each inspiration matches your existing clothes using Google Gemini AI. Get a percentage match and see which items you already have.</p>
                 </div>
 
                 <div style="margin-top: 1rem;">
-                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">4. Get Suggestions</h3>
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">4. Get AI Suggestions</h3>
                     <p style="font-size: 0.9rem; color: var(--neutral);">Receive AI-powered outfit suggestions using only the clothes in your wardrobe. Discover new combinations you never thought of!</p>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">🔑 Configuring Google Gemini API</h3>
+                    <p style="font-size: 0.9rem; color: var(--neutral); margin-bottom: 0.5rem;">To use real AI features:</p>
+                    <ol style="font-size: 0.85rem; color: var(--neutral); padding-left: 1.5rem; margin-bottom: 0.5rem;">
+                        <li>Go to <strong>console.cloud.google.com</strong></li>
+                        <li>Create a new project</li>
+                        <li>Enable the Generative Language API</li>
+                        <li>Create an API key</li>
+                        <li>Replace the key in the CONFIG section at the top of this file</li>
+                    </ol>
                 </div>
 
                 <div class="tips-box" style="margin-top: 1rem; margin-bottom: 0;">
@@ -1533,7 +1969,7 @@
 
                 <div style="margin-top: 1rem; background-color: var(--light); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem;">
                     <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">Demo Account</h3>
-                    <p style="font-size: 0.85rem; color: var(--neutral); margin-bottom: 0.75rem;">Try our demo with sample data already loaded:</p>
+                    <p style="font-size: 0.85rem; color: var(--neutral); margin-bottom: 0.75rem;">Try with sample data:</p>
                     <div style="background-color: var(--secondary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.75rem; font-family: monospace; font-size: 0.8rem;">
                         <p>Email: demo@example.com</p>
                         <p>Password: demo123</p>
@@ -1569,8 +2005,25 @@
                 updateUIForLoggedIn();
                 loadWardrobeData();
                 loadInspirationData();
+                updateAPIStatusBadge();
             }
         });
+
+        // Update API Status Badge
+        function updateAPIStatusBadge() {
+            const badge = document.getElementById('apiStatusBadge');
+            const hasValidKey = !CONFIG.GEMINI_API_KEY.includes('sample') && !CONFIG.GEMINI_API_KEY.includes('Dample');
+
+            if (hasValidKey) {
+                badge.classList.remove('inactive');
+                badge.classList.add('active');
+                badge.innerHTML = '<div class="status-dot active"></div><span>AI Mode Active</span>';
+            } else {
+                badge.classList.add('inactive');
+                badge.classList.remove('active');
+                badge.innerHTML = '<div class="status-dot inactive"></div><span>Mock Mode</span>';
+            }
+        }
 
         // Navigation
         function goToPage(pageName) {
@@ -1655,9 +2108,21 @@
                 localStorage.setItem('user', JSON.stringify(state.currentUser));
                 updateUIForLoggedIn();
                 createDemoData();
+                updateAPIStatusBadge();
+                goToPage('dashboard');
+            } else if (email && password) {
+                // Allow any email/password for testing
+                state.currentUser = {
+                    id: 'user-' + Date.now(),
+                    email: email,
+                    full_name: email.split('@')[0]
+                };
+                localStorage.setItem('user', JSON.stringify(state.currentUser));
+                updateUIForLoggedIn();
+                updateAPIStatusBadge();
                 goToPage('dashboard');
             } else {
-                errorDiv.textContent = 'Invalid email or password';
+                errorDiv.textContent = 'Please fill in all fields';
                 errorDiv.classList.add('show');
                 setTimeout(() => {
                     errorDiv.classList.remove('show');
@@ -1686,6 +2151,7 @@
             };
             localStorage.setItem('user', JSON.stringify(state.currentUser));
             updateUIForLoggedIn();
+            updateAPIStatusBadge();
             goToPage('dashboard');
         }
 
@@ -1696,6 +2162,7 @@
             state.matches = {};
             localStorage.removeItem('user');
             updateUIForLoggedOut();
+            updateAPIStatusBadge();
             goToPage('home');
         }
 
@@ -1952,7 +2419,7 @@
                     <img src="${inspiration.image_url}" alt="${inspiration.title}">
                 </div>
                 <h2>${inspiration.title}</h2>
-                <button class="btn btn-primary" style="width: 100%; margin-bottom: 1.5rem;" onclick="analyzeOutfit('${inspirationId}')">Analyze with Your Wardrobe</button>
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 1.5rem;" onclick="analyzeOutfit('${inspirationId}')">🤖 Analyze with AI</button>
 
                 <div id="matchResult-${inspirationId}"></div>
             `;
@@ -1965,36 +2432,26 @@
             }
         }
 
-        function analyzeOutfit(inspirationId) {
+        async function analyzeOutfit(inspirationId) {
             const inspiration = state.inspirations.find(i => i.id === inspirationId);
+            const resultDiv = document.getElementById('matchResult-' + inspirationId);
 
-            // Mock analysis
-            const mockOutfitItems = [
-                'White Blazer',
-                'Black Slim Pants',
-                'Black Loafers',
-                'Silver Watch',
-                'Minimalist Crossbody Bag',
-            ];
+            // Show loading state
+            resultDiv.innerHTML = `
+                <div class="loading" style="padding: 2rem; justify-content: center;">
+                    <div class="spinner"></div>
+                    <span>Analyzing with Gemini AI...</span>
+                </div>
+            `;
 
-            // Simulate finding items in wardrobe
-            const ownedItems = mockOutfitItems.filter(() => Math.random() > 0.3);
-            const missingItems = mockOutfitItems.filter(item => !ownedItems.includes(item));
-            const matchPercentage = Math.round((ownedItems.length / mockOutfitItems.length) * 100);
-
-            const result = {
-                matchPercentage,
-                ownedItems,
-                missingItems,
-                recommendations: [
-                    'This outfit would look great with your wardrobe!',
-                    'Consider adding a statement piece to complete the look',
-                    'Mix with neutral colors to create balance',
-                ]
-            };
-
-            state.matches[inspirationId] = result;
-            renderMatchResult(inspirationId, result);
+            // Call Gemini AI service
+            if (aiService) {
+                const result = await aiService.analyzeOutfitImage(inspiration.image_url, state.wardrobeItems);
+                state.matches[inspirationId] = result;
+                renderMatchResult(inspirationId, result);
+            } else {
+                resultDiv.innerHTML = '<div style="color: red; padding: 1rem;">AI Service not initialized</div>';
+            }
         }
 
         function renderMatchResult(inspirationId, result) {
@@ -2050,9 +2507,9 @@
                             </div>
                         ` : ''}
 
-                        ${result.recommendations.length > 0 ? `
+                        ${result.recommendations && result.recommendations.length > 0 ? `
                             <div class="items-section">
-                                <h4>💡 Recommendations</h4>
+                                <h4>💡 AI Recommendations</h4>
                                 <div class="recommendations">
                                     <ul>
                                         ${result.recommendations.map(rec => `
