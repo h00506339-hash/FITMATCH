@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitMatch - AI-Powered Fashion Styling</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #000000;
+            --secondary: #ffffff;
+            --neutral: #6b7280;
+            --light: #f3f4f6;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--secondary);
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 1px solid var(--border);
+            background-color: var(--secondary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 4rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: bold;
+            font-size: 1.25rem;
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .logo-icon {
+            width: 2rem;
+            height: 2rem;
+            background-color: var(--primary);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        nav a, nav button {
+            font-weight: 500;
+            color: var(--neutral);
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        nav a:hover, nav button:hover {
+            color: var(--primary);
+        }
+
+        nav a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--secondary);
+        }
+
+        .btn-primary:hover {
+            background-color: #1f2937;
+        }
+
+        .btn-secondary {
+            border: 1px solid var(--primary);
+            background-color: transparent;
+            color: var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--light);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--secondary);
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-success {
+            background-color: var(--success);
+            color: var(--secondary);
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Main Content */
+        main {
+            min-height: calc(100vh - 4rem);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Hero Section */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            padding: 5rem 0;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .hero-content p {
+            font-size: 1.1rem;
+            color: var(--neutral);
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-buttons .btn {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+        }
+
+        .hero-image {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 1rem;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        /* Features Section */
+        .features {
+            background-color: var(--light);
+            padding: 5rem 0;
+            margin-top: 3rem;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.25rem;
+            margin-bottom: 3rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background-color: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--neutral);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="file"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="file"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            ring: 2px solid var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Auth Pages */
+        .auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 4rem);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 28rem;
+            background-color: var(--secondary);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-card h1 {
+            font-size: 1.875rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-card > p {
+            color: var(--neutral);
+            margin-bottom: 2rem;
+        }
+
+        .error-message {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .auth-form .btn {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--neutral);
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .demo-box {
+            background-color: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 2rem;
+            font-size: 0.875rem;
+        }
+
+        .demo-box p {
+            color: var(--neutral);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Dashboard */
+        .page-header {
+            padding: 3rem 0 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.25rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: var(--neutral);
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background-color: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 4rem;
+            height: 4rem;
+            background-color: var(--light);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-content h3 {
+            font-size: 1.875rem;
+            font-weight: bold;
+        }
+
+        .stat-content p {
+            color: var(--neutral);
+            font-size: 0.875rem;
+        }
+
+        .action-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .action-card {
+            border-radius: 1rem;
+            padding: 2rem;
+            color: var(--secondary);
+        }
+
+        .action-card.primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #374151 100%);
+        }
+
+        .action-card.secondary {
+            background: linear-gradient(135deg, var(--light) 0%, #d1d5db 100%);
+            color: var(--primary);
+        }
+
+        .action-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .action-card p {
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+
+        .tips-box {
+            background-color: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .tips-box h3 {
+            color: #1e3a8a;
+            margin-bottom: 1rem;
+        }
+
+        .tips-box ul {
+            list-style: none;
+            color: #1e3a8a;
+        }
+
+        .tips-box li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background-color: var(--light);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: var(--secondary);
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary);
+        }
+
+        .image-upload-area.has-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1;
+        }
+
+        .image-upload-area img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 0.5rem;
+        }
+
+        .upload-text {
+            font-size: 1rem;
+        }
+
+        .upload-text .emoji {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+
+        .upload-text p {
+            margin: 0.5rem 0;
+        }
+
+        .upload-text .small {
+            color: var(--neutral);
+            font-size: 0.875rem;
+        }
+
+        #imageInput {
+            display: none;
+        }
+
+        /* Category Filter */
+        .category-filter {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .category-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 2rem;
+            background-color: var(--light);
+            color: var(--primary);
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .category-btn:hover {
+            background-color: #d1d5db;
+        }
+
+        .category-btn.active {
+            background-color: var(--primary);
+            color: var(--secondary);
+        }
+
+        /* Grid Layouts */
+        .wardrobe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .wardrobe-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+
+        .wardrobe-item {
+            position: relative;
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            transition: all 0.3s;
+            background-color: var(--secondary);
+        }
+
+        .wardrobe-item:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .wardrobe-item-image {
+            width: 100%;
+            aspect-ratio: 1;
+            background-color: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .wardrobe-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .wardrobe-item-delete {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: var(--danger);
+            color: var(--secondary);
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 1rem;
+        }
+
+        .wardrobe-item:hover .wardrobe-item-delete {
+            opacity: 1;
+        }
+
+        .wardrobe-item-info {
+            padding: 0.75rem;
+        }
+
+        .wardrobe-item-category {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+        }
+
+        .wardrobe-item-color {
+            font-size: 0.75rem;
+            color: var(--neutral);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .empty-state p {
+            color: var(--neutral);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Inspirations Page */
+        .inspirations-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 2rem;
+        }
+
+        .inspirations-list {
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1rem;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .inspiration-item {
+            cursor: pointer;
+            border: 2px solid var(--border);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s;
+            position: relative;
+            group: inspiration-item;
+        }
+
+        .inspiration-item.active {
+            border-color: var(--primary);
+        }
+
+        .inspiration-item:hover {
+            border-color: #d1d5db;
+        }
+
+        .inspiration-item-image {
+            width: 100%;
+            aspect-ratio: 1;
+            background-color: var(--light);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .inspiration-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .inspiration-item-delete {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: var(--danger);
+            color: var(--secondary);
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .inspiration-item:hover .inspiration-item-delete {
+            opacity: 1;
+        }
+
+        .inspiration-item-info {
+            padding: 0.5rem;
+            background-color: var(--secondary);
+            border-top: 1px solid var(--border);
+        }
+
+        .inspiration-item-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .inspiration-item-source {
+            font-size: 0.75rem;
+            color: var(--neutral);
+        }
+
+        .inspiration-detail {
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+        }
+
+        .inspiration-preview {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: var(--light);
+            border-radius: 1rem;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .inspiration-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .inspiration-detail h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Match Card */
+        .match-card {
+            background-color: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .match-percentage-circle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .percentage-ring {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 30% 30%, rgba(0,0,0,0.2), transparent);
+        }
+
+        .percentage-ring.high {
+            background: radial-gradient(circle at 30% 30%, rgba(16, 185, 129, 0.2), transparent);
+        }
+
+        .percentage-ring.medium {
+            background: radial-gradient(circle at 30% 30%, rgba(245, 158, 11, 0.2), transparent);
+        }
+
+        .percentage-ring.low {
+            background: radial-gradient(circle at 30% 30%, rgba(239, 68, 68, 0.2), transparent);
+        }
+
+        .percentage-text {
+            text-align: center;
+        }
+
+        .percentage-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .percentage-label {
+            color: var(--neutral);
+            font-size: 0.875rem;
+        }
+
+        .match-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .match-summary-item {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .match-summary-item.owned {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .match-summary-item.missing {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .match-summary-number {
+            font-size: 1.875rem;
+            font-weight: bold;
+        }
+
+        .match-summary-label {
+            font-size: 0.875rem;
+        }
+
+        .match-toggle-btn {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            background-color: var(--secondary);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .match-toggle-btn:hover {
+            background-color: var(--light);
+        }
+
+        .match-details {
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .match-details.show {
+            display: block;
+        }
+
+        .items-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .items-section h4 {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .items-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .tag.owned {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .tag.missing {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .recommendations {
+            background-color: var(--light);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .recommendations ul {
+            list-style: none;
+        }
+
+        .recommendations li {
+            padding: 0.5rem 0;
+            color: var(--neutral);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .recommendations span {
+            color: #9ca3af;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--secondary);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 32rem;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--neutral);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Help Button */
+        .help-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            background-color: var(--primary);
+            color: var(--secondary);
+            border: none;
+            border-radius: 50%;
+            font-size: 1.25rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            z-index: 999;
+        }
+
+        .help-btn:hover {
+            background-color: #1f2937;
+            transform: scale(1.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 3rem 0;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .hero-buttons .btn {
+                width: 100%;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wardrobe-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .inspirations-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .inspirations-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                max-height: none;
+                gap: 0.75rem;
+            }
+
+            .inspiration-item {
+                margin-bottom: 0;
+            }
+
+            .action-cards {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <a href="#" class="logo" onclick="goToPage('home')">
+                <div class="logo-icon">F</div>
+                <span>FitMatch</span>
+            </a>
+
+            <nav id="mainNav" style="display: none;">
+                <a href="#" onclick="goToPage('dashboard')" class="nav-link">Dashboard</a>
+                <a href="#" onclick="goToPage('wardrobe')" class="nav-link">Wardrobe</a>
+                <a href="#" onclick="goToPage('inspirations')" class="nav-link">Inspirations</a>
+            </nav>
+
+            <div class="nav-right">
+                <div id="userInfo" style="display: none; text-align: right; margin-right: 1rem;">
+                    <div style="font-weight: 500; color: var(--primary); font-size: 0.9rem;" id="userName"></div>
+                    <div style="font-size: 0.8rem; color: var(--neutral);" id="userEmail"></div>
+                </div>
+                <button class="btn btn-primary" id="navAuth" onclick="toggleAuthMenu()">Login</button>
+                <button class="btn btn-danger" id="logoutBtn" onclick="logout()" style="display: none;">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Home Page -->
+        <div id="homePage" class="page active">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-content">
+                    <h1>Style with <span style="color: var(--neutral);">Intelligence</span></h1>
+                    <p>FitMatch uses AI to help you recreate outfits you love using clothes you already own. Build your digital wardrobe and find perfect style combinations instantly.</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary" onclick="goToPage('signup')">Get Started Free</button>
+                        <button class="btn btn-secondary" onclick="goToPage('login')">Sign In</button>
+                    </div>
+                </div>
+                <div class="hero-image">✨</div>
+            </section>
+
+            <!-- Features Section -->
+            <section class="features">
+                <div class="container">
+                    <h2>Features</h2>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">📸</div>
+                            <h3>Digital Wardrobe</h3>
+                            <p>Upload photos of all your clothes and organize them into categories.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎨</div>
+                            <h3>Inspiration Board</h3>
+                            <p>Save outfit ideas and compare them with your wardrobe instantly.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">✨</div>
+                            <h3>AI Styling</h3>
+                            <p>Get personalized outfit suggestions based on your existing clothes.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h3>Match Analysis</h3>
+                            <p>See exactly which items you have and which ones you need.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔄</div>
+                            <h3>Smart Combinations</h3>
+                            <p>Discover new outfit combinations you never thought of before.</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">👗</div>
+                            <h3>Luxury Aesthetic</h3>
+                            <p>Beautiful, intuitive interface designed for modern fashion lovers.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section style="background-color: var(--primary); color: var(--secondary); border-radius: 1rem; padding: 3rem; margin-top: 3rem; text-align: center;">
+                <h2 style="font-size: 2rem; margin-bottom: 1rem;">Ready to revolutionize your style?</h2>
+                <p style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem; max-width: 42rem; margin-left: auto; margin-right: auto;">Join thousands of users who are creating perfect outfits with FitMatch</p>
+                <button class="btn" style="background-color: var(--secondary); color: var(--primary); padding: 0.75rem 2rem; font-size: 1rem;" onclick="goToPage('signup')">Start Styling Now</button>
+            </section>
+        </div>
+
+        <!-- Login Page -->
+        <div id="loginPage" class="page">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h1>Welcome Back</h1>
+                    <p>Sign in to your FitMatch account</p>
+
+                    <div id="loginError" class="error-message"></div>
+
+                    <form class="auth-form" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="loginEmail" required placeholder="you@example.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="loginPassword" required placeholder="••••••••">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Sign In</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        Don't have an account? <a href="#" onclick="goToPage('signup')">Sign up</a>
+                    </div>
+
+                    <div class="demo-box">
+                        <p><strong>Demo Credentials:</strong></p>
+                        <p>Email: demo@example.com</p>
+                        <p>Password: demo123</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signup Page -->
+        <div id="signupPage" class="page">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h1>Create Account</h1>
+                    <p>Join FitMatch to style with AI</p>
+
+                    <div id="signupError" class="error-message"></div>
+
+                    <form class="auth-form" onsubmit="handleSignup(event)">
+                        <div class="form-group">
+                            <label>Full Name (optional)</label>
+                            <input type="text" id="signupName" placeholder="John Doe">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="signupEmail" required placeholder="you@example.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="signupPassword" required placeholder="••••••••">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Confirm Password</label>
+                            <input type="password" id="signupConfirm" required placeholder="••••••••">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        Already have an account? <a href="#" onclick="goToPage('login')">Sign in</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Page -->
+        <div id="dashboardPage" class="page">
+            <div class="page-header">
+                <h1 id="welcomeName">Welcome!</h1>
+                <p>Here's your FitMatch overview</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card" onclick="goToPage('wardrobe')">
+                    <div class="stat-icon">👗</div>
+                    <div class="stat-content">
+                        <div class="stat-content" style="display: flex; flex-direction: column;">
+                            <h3 id="wardrobeCount">0</h3>
+                            <p>Wardrobe Items</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card" onclick="goToPage('inspirations')">
+                    <div class="stat-icon">✨</div>
+                    <div class="stat-content">
+                        <div class="stat-content" style="display: flex; flex-direction: column;">
+                            <h3 id="inspirationCount">0</h3>
+                            <p>Inspirations</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-content">
+                        <div class="stat-content" style="display: flex; flex-direction: column;">
+                            <h3 id="matchCount">0</h3>
+                            <p>Outfits Analyzed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-cards">
+                <div class="action-card primary" onclick="goToPage('wardrobe')">
+                    <h3>Build Your Wardrobe</h3>
+                    <p>Upload photos of your clothes and organize them by category</p>
+                    <button class="btn btn-secondary">Add Items →</button>
+                </div>
+
+                <div class="action-card secondary" onclick="goToPage('inspirations')">
+                    <h3>Find Inspiration</h3>
+                    <p>Upload outfit photos and let AI match them with your wardrobe</p>
+                    <button class="btn" style="background-color: var(--primary); color: var(--secondary);">Add Inspiration →</button>
+                </div>
+            </div>
+
+            <div class="tips-box">
+                <h3>💡 Styling Tips</h3>
+                <ul>
+                    <li>• Start by uploading clear, well-lit photos of your favorite clothing items</li>
+                    <li>• Organize items by category (tops, bottoms, dresses, etc.) for better results</li>
+                    <li>• Upload multiple angles and detail shots of key pieces</li>
+                    <li>• Add tags to help AI understand style, color, and occasion</li>
+                    <li>• Check inspirations regularly for new styling ideas</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Wardrobe Page -->
+        <div id="wardrobePage" class="page">
+            <div class="header-actions">
+                <div>
+                    <h1 style="font-size: 2.25rem; font-weight: bold;">Your Wardrobe</h1>
+                    <p style="color: var(--neutral);" id="wardrobeItemCount">0 items in your closet</p>
+                </div>
+                <button class="btn btn-primary" onclick="toggleUploadSection()">+ Add Item</button>
+            </div>
+
+            <!-- Upload Section -->
+            <div id="uploadSection" class="upload-section" style="display: none;">
+                <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1.5rem;">Upload New Item</h2>
+
+                <div class="upload-grid">
+                    <div class="upload-form">
+                        <div class="form-group">
+                            <label>Category *</label>
+                            <select id="itemCategory">
+                                <option value="tops">Tops</option>
+                                <option value="bottoms">Bottoms</option>
+                                <option value="dresses">Dresses</option>
+                                <option value="outerwear">Outerwear</option>
+                                <option value="shoes">Shoes</option>
+                                <option value="accessories">Accessories</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Color (optional)</label>
+                            <input type="text" id="itemColor" placeholder="e.g., Black, Blue, Neutral">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Style (optional)</label>
+                            <input type="text" id="itemStyle" placeholder="e.g., Casual, Formal, Sporty">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tags (optional, comma-separated)</label>
+                            <input type="text" id="itemTags" placeholder="e.g., summer, comfortable, leather">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="image-upload-area" onclick="document.getElementById('wardrobeImageInput').click()">
+                            <input type="file" id="wardrobeImageInput" accept="image/*" style="display: none;" onchange="previewWardrobeImage(event)">
+                            <div class="upload-text">
+                                <span class="emoji">📸</span>
+                                <p>Click to upload or drag and drop</p>
+                                <p class="small">PNG, JPG, GIF up to 10MB</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="wardrobeUploadBtn" onclick="uploadWardrobeItem()" disabled>Upload Image</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="category-filter">
+                <button class="category-btn active" onclick="filterWardrobeByCategory('all')">All Items</button>
+                <button class="category-btn" onclick="filterWardrobeByCategory('tops')">Tops</button>
+                <button class="category-btn" onclick="filterWardrobeByCategory('bottoms')">Bottoms</button>
+                <button class="category-btn" onclick="filterWardrobeByCategory('dresses')">Dresses</button>
+                <button class="category-btn" onclick="filterWardrobeByCategory('outerwear')">Outerwear</button>
+                <button class="category-btn" onclick="filterWardrobeByCategory('shoes')">Shoes</button>
+                <button class="category-btn" onclick="filterWardrobeByCategory('accessories')">Accessories</button>
+            </div>
+
+            <!-- Wardrobe Grid -->
+            <div id="wardrobeGrid" class="wardrobe-grid">
+            </div>
+        </div>
+
+        <!-- Inspirations Page -->
+        <div id="inspirationsPage" class="page">
+            <div class="header-actions">
+                <div>
+                    <h1 style="font-size: 2.25rem; font-weight: bold;">Outfit Inspirations</h1>
+                    <p style="color: var(--neutral);" id="inspirationCount2">0 outfits saved</p>
+                </div>
+                <button class="btn btn-primary" onclick="toggleInspirationsUpload()">+ Add Inspiration</button>
+            </div>
+
+            <!-- Upload Section -->
+            <div id="inspirationsUploadSection" class="upload-section" style="display: none;">
+                <h2 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1.5rem;">Upload Outfit Inspiration</h2>
+
+                <div class="upload-grid">
+                    <div class="upload-form">
+                        <div class="form-group">
+                            <label>Outfit Title (optional)</label>
+                            <input type="text" id="inspirationTitle" placeholder="e.g., Minimalist Chic">
+                        </div>
+
+                        <div class="tips-box" style="margin-top: 1.5rem; margin-bottom: 0;">
+                            <p style="font-weight: 500; margin-bottom: 0.75rem;">💡 Tips for best results:</p>
+                            <ul style="padding-left: 1rem;">
+                                <li style="margin-bottom: 0.25rem;">• Use clear, well-lit photos</li>
+                                <li style="margin-bottom: 0.25rem;">• Show the full outfit</li>
+                                <li style="margin-bottom: 0.25rem;">• Avoid busy backgrounds</li>
+                                <li>• Include accessories</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="image-upload-area" onclick="document.getElementById('inspirationImageInput').click()">
+                            <input type="file" id="inspirationImageInput" accept="image/*" style="display: none;" onchange="previewInspirationImage(event)">
+                            <div class="upload-text">
+                                <span class="emoji">📸</span>
+                                <p>Click to upload or drag and drop</p>
+                                <p class="small">PNG, JPG, GIF up to 10MB</p>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" id="inspirationUploadBtn" onclick="uploadInspirationItem()" disabled>Upload Image</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div id="inspirationsContent" style="display: none;">
+                <div class="inspirations-layout">
+                    <!-- List -->
+                    <div class="inspirations-list" id="inspirationsList">
+                    </div>
+
+                    <!-- Detail -->
+                    <div class="inspiration-detail" id="inspirationDetail">
+                        <div style="text-align: center; padding: 3rem 1rem; color: var(--neutral);">
+                            Select an outfit to analyze
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="inspirationsEmpty" class="empty-state">
+                <div class="empty-state-icon">✨</div>
+                <h3>No outfit inspirations yet</h3>
+                <p>Start by uploading a photo of an outfit you love</p>
+                <button class="btn btn-primary" onclick="toggleInspirationsUpload()">+ Add Your First Inspiration</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeHelpModal()">✕</button>
+            <div class="modal-header">
+                <h2>Getting Started</h2>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">1. Build Your Wardrobe</h3>
+                    <p style="font-size: 0.9rem; color: var(--neutral);">Start by uploading clear photos of your clothing items. Organize them by category (tops, bottoms, dresses, etc.) and add colors/styles for better matching.</p>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">2. Save Inspirations</h3>
+                    <p style="font-size: 0.9rem; color: var(--neutral);">Upload outfit photos that inspire you from anywhere - Pinterest, Instagram, or your own photos.</p>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">3. Analyze with AI</h3>
+                    <p style="font-size: 0.9rem; color: var(--neutral);">Click "Analyze with Your Wardrobe" to see how well each inspiration matches your existing clothes. Get a percentage match and see which items you already have.</p>
+                </div>
+
+                <div style="margin-top: 1rem;">
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">4. Get Suggestions</h3>
+                    <p style="font-size: 0.9rem; color: var(--neutral);">Receive AI-powered outfit suggestions using only the clothes in your wardrobe. Discover new combinations you never thought of!</p>
+                </div>
+
+                <div class="tips-box" style="margin-top: 1rem; margin-bottom: 0;">
+                    <p style="font-weight: 500; margin-bottom: 0.75rem;">Pro Tips:</p>
+                    <ul style="padding-left: 1rem; font-size: 0.85rem;">
+                        <li>• Use clear, well-lit photos for better AI analysis</li>
+                        <li>• Add tags to help AI understand style preferences</li>
+                        <li>• Upload from multiple angles for key pieces</li>
+                        <li>• Check back regularly for new styling ideas</li>
+                    </ul>
+                </div>
+
+                <div style="margin-top: 1rem; background-color: var(--light); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1rem;">
+                    <h3 style="font-weight: bold; margin-bottom: 0.5rem; color: var(--primary);">Demo Account</h3>
+                    <p style="font-size: 0.85rem; color: var(--neutral); margin-bottom: 0.75rem;">Try our demo with sample data already loaded:</p>
+                    <div style="background-color: var(--secondary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.75rem; font-family: monospace; font-size: 0.8rem;">
+                        <p>Email: demo@example.com</p>
+                        <p>Password: demo123</p>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="closeHelpModal()">Got It!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Button -->
+    <button class="help-btn" onclick="openHelpModal()" title="Help">?</button>
+
+    <script>
+        // State Management
+        const state = {
+            currentUser: null,
+            wardrobeItems: [],
+            inspirations: [],
+            matches: {},
+            selectedInspirationId: null,
+            wardrobeImageFile: null,
+            inspirationImageFile: null,
+            currentCategory: 'all',
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const stored = localStorage.getItem('user');
+            if (stored) {
+                state.currentUser = JSON.parse(stored);
+                updateUIForLoggedIn();
+                loadWardrobeData();
+                loadInspirationData();
+            }
+        });
+
+        // Navigation
+        function goToPage(pageName) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+
+            let targetPage;
+            switch(pageName) {
+                case 'home':
+                    targetPage = document.getElementById('homePage');
+                    break;
+                case 'login':
+                    targetPage = document.getElementById('loginPage');
+                    break;
+                case 'signup':
+                    targetPage = document.getElementById('signupPage');
+                    break;
+                case 'dashboard':
+                    if (!state.currentUser) {
+                        goToPage('login');
+                        return;
+                    }
+                    targetPage = document.getElementById('dashboardPage');
+                    loadDashboardData();
+                    break;
+                case 'wardrobe':
+                    if (!state.currentUser) {
+                        goToPage('login');
+                        return;
+                    }
+                    targetPage = document.getElementById('wardrobePage');
+                    break;
+                case 'inspirations':
+                    if (!state.currentUser) {
+                        goToPage('login');
+                        return;
+                    }
+                    targetPage = document.getElementById('inspirationsPage');
+                    updateInspirationUI();
+                    break;
+                default:
+                    targetPage = document.getElementById('homePage');
+            }
+
+            if (targetPage) {
+                targetPage.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+
+            updateActiveNavLink(pageName);
+        }
+
+        function updateActiveNavLink(pageName) {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+
+            if (pageName === 'dashboard') {
+                const dashboardLink = document.querySelector('[onclick*="dashboard"]');
+                if (dashboardLink) dashboardLink.classList.add('active');
+            } else if (pageName === 'wardrobe') {
+                const wardrobeLink = document.querySelector('[onclick*="wardrobe"]');
+                if (wardrobeLink) wardrobeLink.classList.add('active');
+            } else if (pageName === 'inspirations') {
+                const inspirationsLink = document.querySelector('[onclick*="inspirations"]');
+                if (inspirationsLink) inspirationsLink.classList.add('active');
+            }
+        }
+
+        // Auth Functions
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (email === 'demo@example.com' && password === 'demo123') {
+                state.currentUser = {
+                    id: 'demo-user',
+                    email: email,
+                    full_name: 'Demo User'
+                };
+                localStorage.setItem('user', JSON.stringify(state.currentUser));
+                updateUIForLoggedIn();
+                createDemoData();
+                goToPage('dashboard');
+            } else {
+                errorDiv.textContent = 'Invalid email or password';
+                errorDiv.classList.add('show');
+                setTimeout(() => {
+                    errorDiv.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+            const name = document.getElementById('signupName').value;
+            const errorDiv = document.getElementById('signupError');
+
+            if (password !== confirm) {
+                errorDiv.textContent = 'Passwords do not match';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            state.currentUser = {
+                id: 'user-' + Date.now(),
+                email: email,
+                full_name: name || email.split('@')[0]
+            };
+            localStorage.setItem('user', JSON.stringify(state.currentUser));
+            updateUIForLoggedIn();
+            goToPage('dashboard');
+        }
+
+        function logout() {
+            state.currentUser = null;
+            state.wardrobeItems = [];
+            state.inspirations = [];
+            state.matches = {};
+            localStorage.removeItem('user');
+            updateUIForLoggedOut();
+            goToPage('home');
+        }
+
+        function updateUIForLoggedIn() {
+            const userNav = document.getElementById('mainNav');
+            const navAuth = document.getElementById('navAuth');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const userInfo = document.getElementById('userInfo');
+            const userName = document.getElementById('userName');
+            const userEmail = document.getElementById('userEmail');
+
+            userNav.style.display = 'flex';
+            navAuth.style.display = 'none';
+            logoutBtn.style.display = 'block';
+            userInfo.style.display = 'block';
+            userName.textContent = state.currentUser.full_name;
+            userEmail.textContent = state.currentUser.email;
+        }
+
+        function updateUIForLoggedOut() {
+            const userNav = document.getElementById('mainNav');
+            const navAuth = document.getElementById('navAuth');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const userInfo = document.getElementById('userInfo');
+
+            userNav.style.display = 'none';
+            navAuth.style.display = 'block';
+            logoutBtn.style.display = 'none';
+            userInfo.style.display = 'none';
+        }
+
+        function toggleAuthMenu() {
+            if (!state.currentUser) {
+                goToPage('login');
+            }
+        }
+
+        // Wardrobe Functions
+        function toggleUploadSection() {
+            const section = document.getElementById('uploadSection');
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function previewWardrobeImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    state.wardrobeImageFile = event.target.result;
+                    const uploadArea = e.target.parentElement;
+                    uploadArea.innerHTML = `<img src="${event.target.result}" style="max-width: 100%; max-height: 100%; border-radius: 0.5rem;">`;
+                    uploadArea.style.aspectRatio = 'auto';
+                    document.getElementById('wardrobeUploadBtn').disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function uploadWardrobeItem() {
+            if (!state.wardrobeImageFile) return;
+
+            const category = document.getElementById('itemCategory').value;
+            const color = document.getElementById('itemColor').value;
+            const style = document.getElementById('itemStyle').value;
+            const tags = document.getElementById('itemTags').value;
+
+            const item = {
+                id: 'item-' + Date.now(),
+                image_url: state.wardrobeImageFile,
+                category: category,
+                color: color || null,
+                style: style || null,
+                tags: tags || null
+            };
+
+            state.wardrobeItems.push(item);
+            localStorage.setItem('wardrobeItems-' + state.currentUser.id, JSON.stringify(state.wardrobeItems));
+
+            // Reset form
+            document.getElementById('itemCategory').value = 'tops';
+            document.getElementById('itemColor').value = '';
+            document.getElementById('itemStyle').value = '';
+            document.getElementById('itemTags').value = '';
+            document.getElementById('wardrobeImageInput').value = '';
+            document.getElementById('wardrobeUploadBtn').disabled = true;
+            state.wardrobeImageFile = null;
+
+            const uploadArea = document.querySelector('[onclick="document.getElementById(\'wardrobeImageInput\').click()"]');
+            uploadArea.innerHTML = `<div class="upload-text"><span class="emoji">📸</span><p>Click to upload or drag and drop</p><p class="small">PNG, JPG, GIF up to 10MB</p></div>`;
+            uploadArea.style.aspectRatio = '1';
+
+            toggleUploadSection();
+            renderWardrobe();
+        }
+
+        function renderWardrobe() {
+            const grid = document.getElementById('wardrobeGrid');
+            const itemCount = document.getElementById('wardrobeItemCount');
+
+            let items = state.wardrobeItems;
+            if (state.currentCategory !== 'all') {
+                items = items.filter(item => item.category === state.currentCategory);
+            }
+
+            itemCount.textContent = state.wardrobeItems.length + ' items in your closet';
+
+            if (items.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <div class="empty-state-icon">👗</div>
+                        <h3>Your wardrobe is empty</h3>
+                        <p>Start by uploading some clothing items</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = items.map(item => `
+                <div class="wardrobe-item">
+                    <div class="wardrobe-item-image">
+                        <img src="${item.image_url}" alt="${item.category}">
+                    </div>
+                    <button class="wardrobe-item-delete" onclick="deleteWardrobeItem('${item.id}')">✕</button>
+                    <div class="wardrobe-item-info">
+                        <div class="wardrobe-item-category">${item.category}</div>
+                        ${item.color ? `<div class="wardrobe-item-color">${item.color}</div>` : ''}
+                        ${item.style ? `<div class="wardrobe-item-color">${item.style}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterWardrobeByCategory(category) {
+            state.currentCategory = category;
+
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            const activeBtn = Array.from(buttons).find(btn => {
+                const text = btn.textContent.toLowerCase();
+                return (category === 'all' && text === 'all items') ||
+                       text.includes(category.toLowerCase());
+            });
+
+            if (activeBtn) activeBtn.classList.add('active');
+
+            renderWardrobe();
+        }
+
+        function deleteWardrobeItem(itemId) {
+            if (!confirm('Are you sure you want to delete this item?')) return;
+
+            state.wardrobeItems = state.wardrobeItems.filter(item => item.id !== itemId);
+            localStorage.setItem('wardrobeItems-' + state.currentUser.id, JSON.stringify(state.wardrobeItems));
+            renderWardrobe();
+        }
+
+        function loadWardrobeData() {
+            const stored = localStorage.getItem('wardrobeItems-' + state.currentUser.id);
+            if (stored) {
+                state.wardrobeItems = JSON.parse(stored);
+            }
+        }
+
+        // Inspirations Functions
+        function toggleInspirationsUpload() {
+            const section = document.getElementById('inspirationsUploadSection');
+            section.style.display = section.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function previewInspirationImage(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    state.inspirationImageFile = event.target.result;
+                    const uploadArea = e.target.parentElement;
+                    uploadArea.innerHTML = `<img src="${event.target.result}" style="max-width: 100%; max-height: 100%; border-radius: 0.5rem;">`;
+                    uploadArea.style.aspectRatio = 'auto';
+                    document.getElementById('inspirationUploadBtn').disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function uploadInspirationItem() {
+            if (!state.inspirationImageFile) return;
+
+            const title = document.getElementById('inspirationTitle').value || 'Untitled Outfit';
+
+            const item = {
+                id: 'inspiration-' + Date.now(),
+                image_url: state.inspirationImageFile,
+                title: title,
+                source: 'Upload'
+            };
+
+            state.inspirations.push(item);
+            localStorage.setItem('inspirations-' + state.currentUser.id, JSON.stringify(state.inspirations));
+
+            // Reset form
+            document.getElementById('inspirationTitle').value = '';
+            document.getElementById('inspirationImageInput').value = '';
+            document.getElementById('inspirationUploadBtn').disabled = true;
+            state.inspirationImageFile = null;
+
+            const uploadArea = document.querySelector('[onclick="document.getElementById(\'inspirationImageInput\').click()"]');
+            uploadArea.innerHTML = `<div class="upload-text"><span class="emoji">📸</span><p>Click to upload or drag and drop</p><p class="small">PNG, JPG, GIF up to 10MB</p></div>`;
+
+            toggleInspirationsUpload();
+            updateInspirationUI();
+        }
+
+        function updateInspirationUI() {
+            const content = document.getElementById('inspirationsContent');
+            const empty = document.getElementById('inspirationsEmpty');
+            const count = document.getElementById('inspirationCount2');
+
+            count.textContent = state.inspirations.length + ' outfits saved';
+
+            if (state.inspirations.length === 0) {
+                content.style.display = 'none';
+                empty.style.display = 'block';
+            } else {
+                content.style.display = 'block';
+                empty.style.display = 'none';
+                renderInspirationsList();
+            }
+        }
+
+        function renderInspirationsList() {
+            const list = document.getElementById('inspirationsList');
+            list.innerHTML = state.inspirations.map(item => `
+                <div class="inspiration-item ${state.selectedInspirationId === item.id ? 'active' : ''}" onclick="selectInspiration('${item.id}')">
+                    <div class="inspiration-item-image">
+                        <img src="${item.image_url}" alt="${item.title}">
+                    </div>
+                    <button class="inspiration-item-delete" onclick="deleteInspiration(event, '${item.id}')">✕</button>
+                    <div class="inspiration-item-info">
+                        <div class="inspiration-item-title">${item.title}</div>
+                        <div class="inspiration-item-source">${item.source}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectInspiration(inspirationId) {
+            state.selectedInspirationId = inspirationId;
+            const inspiration = state.inspirations.find(i => i.id === inspirationId);
+
+            const detail = document.getElementById('inspirationDetail');
+            detail.innerHTML = `
+                <div class="inspiration-preview">
+                    <img src="${inspiration.image_url}" alt="${inspiration.title}">
+                </div>
+                <h2>${inspiration.title}</h2>
+                <button class="btn btn-primary" style="width: 100%; margin-bottom: 1.5rem;" onclick="analyzeOutfit('${inspirationId}')">Analyze with Your Wardrobe</button>
+
+                <div id="matchResult-${inspirationId}"></div>
+            `;
+
+            renderInspirationsList();
+
+            // Check if we have a saved match result
+            if (state.matches[inspirationId]) {
+                renderMatchResult(inspirationId, state.matches[inspirationId]);
+            }
+        }
+
+        function analyzeOutfit(inspirationId) {
+            const inspiration = state.inspirations.find(i => i.id === inspirationId);
+
+            // Mock analysis
+            const mockOutfitItems = [
+                'White Blazer',
+                'Black Slim Pants',
+                'Black Loafers',
+                'Silver Watch',
+                'Minimalist Crossbody Bag',
+            ];
+
+            // Simulate finding items in wardrobe
+            const ownedItems = mockOutfitItems.filter(() => Math.random() > 0.3);
+            const missingItems = mockOutfitItems.filter(item => !ownedItems.includes(item));
+            const matchPercentage = Math.round((ownedItems.length / mockOutfitItems.length) * 100);
+
+            const result = {
+                matchPercentage,
+                ownedItems,
+                missingItems,
+                recommendations: [
+                    'This outfit would look great with your wardrobe!',
+                    'Consider adding a statement piece to complete the look',
+                    'Mix with neutral colors to create balance',
+                ]
+            };
+
+            state.matches[inspirationId] = result;
+            renderMatchResult(inspirationId, result);
+        }
+
+        function renderMatchResult(inspirationId, result) {
+            const resultDiv = document.getElementById('matchResult-' + inspirationId);
+            if (!resultDiv) return;
+
+            const getPercentageRingClass = (percentage) => {
+                if (percentage >= 80) return 'high';
+                if (percentage >= 50) return 'medium';
+                return 'low';
+            };
+
+            resultDiv.innerHTML = `
+                <div class="match-card">
+                    <div class="match-percentage-circle">
+                        <div class="percentage-ring ${getPercentageRingClass(result.matchPercentage)}">
+                            <div class="percentage-text">
+                                <div class="percentage-number">${result.matchPercentage}%</div>
+                                <div class="percentage-label">Match</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="match-summary">
+                        <div class="match-summary-item owned">
+                            <div class="match-summary-number">${result.ownedItems.length}</div>
+                            <div class="match-summary-label">Items You Have</div>
+                        </div>
+                        <div class="match-summary-item missing">
+                            <div class="match-summary-number">${result.missingItems.length}</div>
+                            <div class="match-summary-label">Items Missing</div>
+                        </div>
+                    </div>
+
+                    <button class="match-toggle-btn" onclick="toggleMatchDetails(this)">View Details</button>
+
+                    <div class="match-details">
+                        ${result.ownedItems.length > 0 ? `
+                            <div class="items-section">
+                                <h4>✓ Items You Have</h4>
+                                <div class="items-tags">
+                                    ${result.ownedItems.map(item => `<span class="tag owned">${item}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${result.missingItems.length > 0 ? `
+                            <div class="items-section">
+                                <h4>○ Items Missing</h4>
+                                <div class="items-tags">
+                                    ${result.missingItems.map(item => `<span class="tag missing">${item}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${result.recommendations.length > 0 ? `
+                            <div class="items-section">
+                                <h4>💡 Recommendations</h4>
+                                <div class="recommendations">
+                                    <ul>
+                                        ${result.recommendations.map(rec => `
+                                            <li>
+                                                <span>•</span>
+                                                <span>${rec}</span>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleMatchDetails(btn) {
+            const details = btn.nextElementSibling;
+            details.classList.toggle('show');
+            btn.textContent = details.classList.contains('show') ? 'Hide Details' : 'View Details';
+        }
+
+        function deleteInspiration(e, inspirationId) {
+            e.stopPropagation();
+            if (!confirm('Are you sure you want to delete this inspiration?')) return;
+
+            state.inspirations = state.inspirations.filter(i => i.id !== inspirationId);
+            localStorage.setItem('inspirations-' + state.currentUser.id, JSON.stringify(state.inspirations));
+
+            if (state.selectedInspirationId === inspirationId) {
+                state.selectedInspirationId = null;
+            }
+
+            delete state.matches[inspirationId];
+
+            updateInspirationUI();
+        }
+
+        function loadInspirationData() {
+            const stored = localStorage.getItem('inspirations-' + state.currentUser.id);
+            if (stored) {
+                state.inspirations = JSON.parse(stored);
+            }
+        }
+
+        // Dashboard
+        function loadDashboardData() {
+            document.getElementById('welcomeName').textContent = 'Welcome back, ' + (state.currentUser.full_name || 'Friend') + '!';
+            document.getElementById('wardrobeCount').textContent = state.wardrobeItems.length;
+            document.getElementById('inspirationCount').textContent = state.inspirations.length;
+            document.getElementById('matchCount').textContent = Object.keys(state.matches).length;
+        }
+
+        // Demo Data
+        function createDemoData() {
+            const demoWardrobeItems = [
+                { id: 'demo-1', image_url: 'https://images.unsplash.com/photo-1539533057440-7cc938ae335e?w=400&h=400&fit=crop', category: 'tops', color: 'Black', style: 'Casual' },
+                { id: 'demo-2', image_url: 'https://images.unsplash.com/photo-1554830591-641fd285e3f8?w=400&h=400&fit=crop', category: 'bottoms', color: 'Blue', style: 'Casual' },
+                { id: 'demo-3', image_url: 'https://images.unsplash.com/photo-1543959519-c3c4f6c1b7d4?w=400&h=400&fit=crop', category: 'dresses', color: 'White', style: 'Formal' },
+            ];
+
+            const demoInspirations = [
+                { id: 'demo-insp-1', image_url: 'https://images.unsplash.com/photo-1593427537707-28e97c74e8d8?w=600&h=600&fit=crop', title: 'Minimalist Chic', source: 'Pinterest' },
+                { id: 'demo-insp-2', image_url: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600&h=600&fit=crop', title: 'Casual Street Style', source: 'Instagram' },
+            ];
+
+            state.wardrobeItems = demoWardrobeItems;
+            state.inspirations = demoInspirations;
+            localStorage.setItem('wardrobeItems-' + state.currentUser.id, JSON.stringify(demoWardrobeItems));
+            localStorage.setItem('inspirations-' + state.currentUser.id, JSON.stringify(demoInspirations));
+        }
+
+        // Help Modal
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.add('active');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('helpModal');
+            if (event.target === modal) {
+                closeHelpModal();
+            }
+        });
+    </script>
+</body>
+</html>
